@@ -58,8 +58,13 @@ addLayer("tree-tab",{
         }
         player.devSpeed=1
         let dif=(Date.now()/1e3-player.tmtmtm)
-        CalcAttribute()
         // dif*=100
+        while(player.exp>=CalcExpNeed(player.level)){
+            player.exp-=CalcExpNeed(player.level)
+            player.level+=1
+        }
+        player.makeCoolDown=Math.max(0,player.makeCoolDown-dif)
+        CalcAttribute()
         player.tmtmtm=Date.now()/1e3
         dif=Math.min(dif,8*3600)
     },
@@ -89,13 +94,16 @@ addLayer("tree-tab",{
                 str+="<tr><td style='text-align:left;width:60px'>等级</td><td style='text-align:left;width:200px'>"+format(player.level,0)+"</td></tr>"
                 str+="<tr><td style='text-align:left;width:60px'>经验</td><td style='text-align:left;width:200px'>"+format(player.exp,0)+"/"+format(CalcExpNeed(player.level),0)+"</td></tr>"
                 str+="<tr><td style='text-align:left;width:60px'>金钱</td><td style='text-align:left;width:200px'>"+format(player.money,0)+"</td></tr>"
+                str+="<tr><td style='text-align:left;width:60px'>战力</td><td style='text-align:left;width:200px'>"+format(player.power,0)+"</td></tr>"
                 str+="<tr><td style='text-align:left;width:60px'>生命</td><td style='text-align:left;width:200px'>"+format(player.health,0)+"</td></tr>"
                 str+="<tr><td style='text-align:left;width:60px'>攻击</td><td style='text-align:left;width:200px'>"+format(player.attack,0)+"</td></tr>"
                 str+="<tr><td style='text-align:left;width:60px'>防御</td><td style='text-align:left;width:200px'>"+format(player.defence,0)+"</td></tr>"
                 str+="</table>"
             }
             else if(player.nowBigTab=="装备"){
-                str+="铁砧 等级"+(player.ironLevel+1)+"<br><br><button onclick='SummonWeapon()'>锻造</button><br><br>"
+                str+="铁砧 等级"+(player.ironLevel+1)+` <button onclick="LoadIronLogs()">?</button><br>
+                <br><button ${player.money.gte(weaponLevelCost[player.ironLevel])?"":"disabled"} onclick='UpgradeIron()'>升级</button> 下一级需要金币 ${format(weaponLevelCost[player.ironLevel])}<br><br><button ${player.makeCoolDown==0?'':'disabled'} onclick='SummonWeapon()'>锻造</button> 冷却 
+                ${format(player.makeCoolDown,0)}s<br><br>`
                 str+="<table>"
                 str+="<tr>"
                 for(let i=0;i<4;i++){
@@ -142,6 +150,17 @@ addLayer("tree-tab",{
                 str+="<td><button onclick='Sell()'>卖出</button></td>"
                 str+="</tr>"
                 str+="</table>"
+            }
+            else if(player.nowBigTab=='关卡'){
+                str+="第 "+player.fightLevel+" 关"
+                if(player.inFight==false){
+                    str+="<br><br><button onclick='player.inFight=true'>挑战</button>"
+                }
+                else{
+                    str+="<table>"
+                    str+="</table>"
+                    str+="<br><br><button onclick='player.inFight=false'>退出</button>"
+                }
             }
             return str
         }],
