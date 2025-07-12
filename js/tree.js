@@ -56,15 +56,20 @@ addLayer("tree-tab",{
         if(player.tmtmtm==0){
             player.tmtmtm=Date.now()/1e3
         }
-        player.devSpeed=1
+        // player.devSpeed=1
         let dif=(Date.now()/1e3-player.tmtmtm)
         // dif*=100
         while(player.exp>=CalcExpNeed(player.level)){
             player.exp-=CalcExpNeed(player.level)
             player.level+=1
         }
+        if(enemy.healthNow==0){
+            player.inFight=false
+        }
         player.makeCoolDown=Math.max(0,player.makeCoolDown-dif)
         CalcAttribute()
+        MoveFight(dif)
+        DealFight()
         player.tmtmtm=Date.now()/1e3
         dif=Math.min(dif,8*3600)
     },
@@ -94,10 +99,11 @@ addLayer("tree-tab",{
                 str+="<tr><td style='text-align:left;width:60px'>等级</td><td style='text-align:left;width:200px'>"+format(player.level,0)+"</td></tr>"
                 str+="<tr><td style='text-align:left;width:60px'>经验</td><td style='text-align:left;width:200px'>"+format(player.exp,0)+"/"+format(CalcExpNeed(player.level),0)+"</td></tr>"
                 str+="<tr><td style='text-align:left;width:60px'>金钱</td><td style='text-align:left;width:200px'>"+format(player.money,0)+"</td></tr>"
-                str+="<tr><td style='text-align:left;width:60px'>战力</td><td style='text-align:left;width:200px'>"+format(player.power,0)+"</td></tr>"
+                str+="<tr><td style='text-align:left;width:60px'>战力</td><td style='text-align:left;width:200px'>"+format(player.power ,0)+"</td></tr>"
                 str+="<tr><td style='text-align:left;width:60px'>生命</td><td style='text-align:left;width:200px'>"+format(player.health,0)+"</td></tr>"
                 str+="<tr><td style='text-align:left;width:60px'>攻击</td><td style='text-align:left;width:200px'>"+format(player.attack,0)+"</td></tr>"
                 str+="<tr><td style='text-align:left;width:60px'>防御</td><td style='text-align:left;width:200px'>"+format(player.defence,0)+"</td></tr>"
+                str+="<tr><td style='text-align:left;width:60px'>速度</td><td style='text-align:left;width:200px'>"+format(player.speed,0)+"</td></tr>"
                 str+="</table>"
             }
             else if(player.nowBigTab=="装备"){
@@ -133,14 +139,16 @@ addLayer("tree-tab",{
                 weaponQualityList[player.weapon[nowChosenWeapon].quality]+weaponNameList[player.weapon[nowChosenWeapon].part]+" 等级"+player.weapon[nowChosenWeapon].level+"<br><br>"
                 +"生命+"+format(player.weapon[nowChosenWeapon].health,1)+"<br>"
                 +"攻击+"+format(player.weapon[nowChosenWeapon].attack,1)+"<br>"
-                +"防御+"+format(player.weapon[nowChosenWeapon].defence,1)+"<br>"}</div></td>`
+                +"防御+"+format(player.weapon[nowChosenWeapon].defence,1)+"<br>"
+                +"速度+"+format(player.weapon[nowChosenWeapon].speed,1)+"<br>"}</div></td>`
                 str+=`<td><div style='width:150px;height:200px;border:3px solid 
                 ${(player.newWeapon==-1)?"black":weaponBorderList[player.newWeapon.quality]};padding-left:5px;padding-top:5px;text-align:left'>
                 ${(player.newWeapon==-1)?"空":
                 weaponQualityList[player.newWeapon.quality]+weaponNameList[player.newWeapon.part]+" 等级"+player.newWeapon.level+"<br><br>"
                 +"生命+"+format(player.newWeapon.health,1)+"<br>"
                 +"攻击+"+format(player.newWeapon.attack,1)+"<br>"
-                +"防御+"+format(player.newWeapon.defence,1)+"<br>"}</div></td>`
+                +"防御+"+format(player.newWeapon.defence,1)+"<br>"
+                +"速度+"+format(player.newWeapon.speed,1)+"<br>"}</div></td>`
                 str+="</tr>"
                 str+="</table>"
                 str+="<br>"
@@ -152,13 +160,15 @@ addLayer("tree-tab",{
                 str+="</table>"
             }
             else if(player.nowBigTab=='关卡'){
-                str+="第 "+player.fightLevel+" 关"
+                str+="第 "+player.fightLevel+" 关<br>"
                 if(player.inFight==false){
-                    str+="<br><br><button onclick='player.inFight=true'>挑战</button>"
+                    str+="<br><br><button onclick='player.inFight=true;EnterFight()'>挑战</button>"
                 }
                 else{
-                    str+="<table>"
-                    str+="</table>"
+                    str+="<canvas id='mycanvas' style='width:600px;height:500px'>"
+                    str+="</canvas>"
+                    if(document.getElementById("mycanvas")!==null)
+                    str+=DrawFight()
                     str+="<br><br><button onclick='player.inFight=false'>退出</button>"
                 }
             }
